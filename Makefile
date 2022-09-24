@@ -7,7 +7,7 @@ endif
 .SHELLFLAGS := -NoProfile -Command
 
 REGISTRY_NAME := 
-REPOSITORY_NAME := bmcclure/
+REPOSITORY_NAME := bmcclure89/
 IMAGE_NAME := elixir_devcontainer
 TAG := :latest
 TARGET_ELIXER_TAG := elixir:1.14-alpine
@@ -45,7 +45,7 @@ size:
 	docker history $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG)
 
 publish:
-	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker logout
+	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME); docker logout
 
 lint: lint_mega lint_credo
 
