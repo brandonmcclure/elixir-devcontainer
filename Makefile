@@ -1,7 +1,16 @@
+ifeq ($(OS),Windows_NT)
+	SHELL := pwsh.exe
+else
+	SHELL := pwsh
+endif
+
+.SHELLFLAGS := -NoProfile -Command
+
 REGISTRY_NAME := 
 REPOSITORY_NAME := bmcclure/
 IMAGE_NAME := elixir_devcontainer
 TAG := :latest
+TARGET_ELIXER_TAG := elixir:1.14-alpine
 
 # Run Options
 RUN_PORTS := -p 4000:4000
@@ -14,8 +23,10 @@ getcommitid:
 getbranchname:
 	$(eval BRANCH_NAME = $(shell (git branch --show-current ) -replace '/','.'))
 
+.PHONY: all clean test lint
+all: build run
 build: getcommitid getbranchname
-	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME)_$(COMMITID) .
+	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME)_$(COMMITID) --build-arg TARGET_ELIXER_TAG=$(TARGET_ELIXER_TAG) .
 
 build_multiarch:
 	docker buildx build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) --platform $(PLATFORMS) .
@@ -35,3 +46,14 @@ size:
 
 publish:
 	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker logout
+
+lint: lint_mega lint_credo
+
+lint_mega:
+	docker run -v $${PWD}:/tmp/lint oxsecurity/megalinter:v6
+lint_goodcheck:
+	docker run -t --rm -v $${PWD}:/work sider/goodcheck check
+lint_goodcheck_test:
+	docker run -t --rm -v $${PWD}:/work sider/goodcheck test
+lint_makefile:
+	docker run -v $${PWD}:/tmp/lint -e ENABLE_LINTERS=MAKEFILE_CHECKMAKE oxsecurity/megalinter:v6
