@@ -11,7 +11,7 @@ RUN apk update
 # install hex + rebar
 RUN mix local.hex --force && \
     mix local.rebar --force && \
-	apk add inotify-tools
+	apk add inotify-tools=3.20.11.0-r0  --no-cache
 
 RUN mix archive.install hex phx_new --force
 WORKDIR /mnt

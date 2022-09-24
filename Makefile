@@ -47,7 +47,7 @@ size:
 publish:
 	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME); docker logout
 
-lint: lint_mega lint_credo
+lint: lint_mega
 
 lint_mega:
 	docker run -v $${PWD}:/tmp/lint oxsecurity/megalinter:v6
