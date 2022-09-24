@@ -69,6 +69,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }} 
+          build-args: TARGET_ELIXER_TAG=elixir:1.14-alpine
       - id: lowercaseImageName
         uses: ASzc/change-string-case-action@v2
         with:
