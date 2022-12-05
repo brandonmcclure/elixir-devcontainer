@@ -7,9 +7,11 @@ on:
   push:
     branches:
       - main  # Trigger CI on main branch
+      - '.github/workflows/docker-build.yml'
   pull_request:
     branches:
       - main  # Trigger gated pipeline on PR to main
+      - '.github/workflows/docker-build.yml'
 
 env:
   REGISTRY: ghcr.io
