@@ -73,7 +73,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }} 
           build-args: TARGET_ELIXER_TAG=elixir:1.14-alpine
       - id: lowercaseImageName
-        uses: ASzc/change-string-case-action@v2
+        uses: ASzc/change-string-case-action@v5
         with:
           string: ${{ env.IMAGE_NAME }}
       - name: Save Docker Image archive to local filesystem
