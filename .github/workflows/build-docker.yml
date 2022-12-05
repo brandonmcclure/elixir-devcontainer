@@ -52,7 +52,7 @@ jobs:
             bmcclure89/${{ env.JUST_IMAGE_NAME }}
 
       - name: Build Docker image (non main branch)
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
         if: github.ref != 'refs/heads/main'
         with:
           context: .
@@ -62,7 +62,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }} 
           build-args: TARGET_ELIXER_TAG=elixir:1.14-alpine
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
         if: github.ref == 'refs/heads/main'
         with:
           context: .
