@@ -1,19 +1,65 @@
-ARG TARGET_ELIXER_TAG
+ARG VARIANT="1.14"
+FROM elixir:${VARIANT}
 
-# Dockerfile
-FROM $TARGET_ELIXER_TAG as build
-ARG TARGET_ELIXER_TAG
+# This Dockerfile adds a non-root user with sudo access. Update the “remoteUser” property in
+# devcontainer.json to use it. More info: https://aka.ms/vscode-remote/containers/non-root-user.
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
-# set build ENV
-ENV MIX_ENV=dev
+# Options for common package install script
+ARG INSTALL_ZSH="true"
+ARG UPGRADE_PACKAGES="true"
+ARG COMMON_SCRIPT_SOURCE="https://raw.githubusercontent.com/microsoft/vscode-dev-containers/main/script-library/common-debian.sh"
+ARG COMMON_SCRIPT_SHA="dev-mode"
 
-RUN apk update
-# install hex + rebar
-RUN mix local.hex --force && \
-    mix local.rebar --force && \
-	apk add inotify-tools=3.20.11.0-r0  --no-cache
+# Optional Settings for Phoenix
+ARG PHOENIX_VERSION="1.6.15"
 
-RUN mix archive.install hex phx_new --force
-WORKDIR /mnt
-ENTRYPOINT [ "/bin/sh" ]
+# [Optional] Setup nodejs
+ARG NODE_SCRIPT_SOURCE="https://raw.githubusercontent.com/microsoft/vscode-dev-containers/main/script-library/node-debian.sh"
+ARG NODE_SCRIPT_SHA="dev-mode"
+# [Optional, Choice] Node.js version: none, lts/*, 16, 14, 12, 10
+ARG NODE_VERSION="none"
+ENV NVM_DIR=/usr/local/share/nvm
+ENV NVM_SYMLINK_CURRENT=true
+ENV PATH=${NVM_DIR}/current/bin:${PATH}
+
+# Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
+RUN apt-get update \
+  && export DEBIAN_FRONTEND=noninteractive \
+  && apt-get -y install --no-install-recommends curl ca-certificates 2>&1 \
+  && curl -sSL ${COMMON_SCRIPT_SOURCE} -o /tmp/common-setup.sh \
+  && ([ "${COMMON_SCRIPT_SHA}" = "dev-mode" ] || (echo "${COMMON_SCRIPT_SHA} */tmp/common-setup.sh" | sha256sum -c -)) \
+  && /bin/bash /tmp/common-setup.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" \
+  #
+  # [Optional] Install Node.js for use with web applications
+  && if [ "$NODE_VERSION" != "none" ]; then \
+  curl -sSL ${NODE_SCRIPT_SOURCE} -o /tmp/node-setup.sh \
+  && ([ "${NODE_SCRIPT_SHA}" = "dev-mode" ] || (echo "${NODE_SCRIPT_SHA} */tmp/node-setup.sh" | sha256sum -c -)) \
+  && /bin/bash /tmp/node-setup.sh "${NVM_DIR}" "${NODE_VERSION}" "${USERNAME}"; \
+  fi \
+  #
+  # Install dependencies
+  && apt-get install -y build-essential inotify-tools \
+  #
+  # Clean up
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/* /tmp/common-setup.sh /tmp/node-setup.sh
+ENV FLYCTL_INSTALL=/opt/flyctl
+RUN su ${USERNAME} -c "mix local.hex --force \
+  && mix local.rebar --force \
+  && mix archive.install --force hex phx_new ${PHOENIX_VERSION}" \
+  && mix local.hex --force \
+  && mix local.rebar --force \
+  && curl -L https://fly.io/install.sh | sh
+
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update \
+#     && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
+
+# [Optional] Uncomment this line to install additional package.
+# RUN  mix ...
 
