@@ -1,7 +1,9 @@
 ARG VARIANT="1.14"
 FROM elixir:${VARIANT}
 
-# This Dockerfile adds a non-root user with sudo access. Update the “remoteUser” property in
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# This Dockerfile adds a non-root user with sudo access. Update the "remoteUser" property in
 # devcontainer.json to use it. More info: https://aka.ms/vscode-remote/containers/non-root-user.
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -54,6 +56,24 @@ RUN su ${USERNAME} -c "mix local.hex --force \
   && mix local.hex --force \
   && mix local.rebar --force \
   && curl -L https://fly.io/install.sh | sh
+
+# Docker in docker
+RUN curl -s https://raw.githubusercontent.com/devcontainers/features/de1e634a6755e10b27e52ad4e0aa44f025540074/src/docker-in-docker/install.sh | bash
+
+# Powershell
+RUN curl -s https://raw.githubusercontent.com/devcontainers/features/7763e0b7db6a16f2efececb6ffa9bd917a9eb5de/src/powershell/install.sh | bash
+
+# # git
+# RUN curl -s https://raw.githubusercontent.com/devcontainers/features/7763e0b7db6a16f2efececb6ffa9bd917a9eb5de/src/git/install.sh | bash
+
+# # git-lfs
+# RUN curl -s https://raw.githubusercontent.com/devcontainers/features/7763e0b7db6a16f2efececb6ffa9bd917a9eb5de/src/git-lfs | bash
+
+# act
+RUN curl -s https://raw.githubusercontent.com/dhoeric/features/8ea9790d10c6d318bda8b542a438a4fe97228e17/src/act/install.sh | bash
+
+# flyctl
+RUN curl -s https://raw.githubusercontent.com/dhoeric/features/8bdd7c3b719e1f4e9d6ef6e6d1ef9a30fdd8f3a4/src/flyctl/install.sh | bash
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update \
